@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+  <!-- Page Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0 fw-700">Farming Dashboard</h4>
+      <p class="text-muted small mb-0">Real-time overview of your farming intelligence</p>
+    </div>
+    <div class="d-flex gap-2">
+      <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+        <i class="bi bi-circle-fill me-1" style="font-size:8px;"></i>Live Data
+      </span>
+      <a href="{{ url_for('chat') }}" class="btn btn-primary-gradient btn-sm px-3">
+        <i class="bi bi-chat-dots-fill me-1"></i>Ask AI Advisor
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Row 1: Weather + Quick Stats ───────────────────────── -->
+  <div class="row g-4 mb-4">
+
+    <!-- Weather Card -->
+    <div class="col-lg-4 col-md-6">
+      <div class="dash-card glass-card h-100">
+        <div class="dash-card-header">
+          <h6><i class="bi bi-cloud-sun-fill me-2 text-warning"></i>Current Weather</h6>
+          <span class="badge bg-warning-subtle text-warning rounded-pill small">{{ weather.location }}</span>
+        </div>
+        <div class="weather-display text-center py-3">
+          <div class="weather-icon-lg mb-2">{{ weather.condition_icon }}</div>
+          <div class="weather-temp">{{ weather.temperature }}°C</div>
+          <div class="text-muted small">{{ weather.condition }}</div>
+        </div>
+        <div class="row g-2 mt-2">
+          <div class="col-6">
+            <div class="mini-stat">
+              <i class="bi bi-droplet-fill text-info"></i>
+              <span>{{ weather.humidity }}%</span>
+              <small>Humidity</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="mini-stat">
+              <i class="bi bi-wind text-primary"></i>
+              <span>{{ weather.wind_speed_kmh }} km/h</span>
+              <small>Wind</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="mini-stat">
+              <i class="bi bi-cloud-rain-fill text-primary"></i>
+              <span>{{ weather.rainfall_mm }} mm</span>
+              <small>Rainfall</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="mini-stat">
+              <i class="bi bi-sun-fill text-warning"></i>
+              <span>UV {{ weather.uv_index }}</span>
+              <small>UV Index</small>
+            </div>
+          </div>
+        </div>
+        <div class="advisory-banner mt-3">
+          <i class="bi bi-info-circle-fill me-2 text-info"></i>
+          <small>{{ weather.farming_advisory }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Crop Recommendation -->
+    <div class="col-lg-4 col-md-6">
+      <div class="dash-card glass-card h-100">
+        <div class="dash-card-header">
+          <h6><i class="bi bi-seedling-fill me-2 text-success"></i>Crop Recommendations</h6>
+          <span class="badge bg-success-subtle text-success rounded-pill small">Kharif</span>
+        </div>
+        {% for crop in crops.recommendations[:3] %}
+        <div class="crop-rec-item {% if loop.first %}crop-rec-top{% endif %} mb-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex align-items-center gap-2">
+              {% if loop.first %}<span class="rec-badge">🥇 Top Pick</span>{% endif %}
+              <span class="fw-600">{{ crop.crop }}</span>
+            </div>
+            <span class="suitability-badge">{{ crop.suitability }}%</span>
+          </div>
+          <div class="d-flex justify-content-between mt-1">
+            <small class="text-muted">{{ crop.expected_yield }}</small>
+            <small class="text-muted">💧 {{ crop.water_need }}</small>
+          </div>
+          <div class="progress mt-2" style="height:4px;">
+            <div class="progress-bar bg-success" style="width:{{ crop.suitability }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+        <div class="text-muted small mt-2">
+          <i class="bi bi-geo-alt-fill me-1"></i>{{ crops.input.state }} · {{ crops.input.soil_type }} soil
+        </div>
+      </div>
+    </div>
+
+    <!-- Soil Health Card -->
+    <div class="col-lg-4 col-md-6">
+      <div class="dash-card glass-card h-100">
+        <div class="dash-card-header">
+          <h6><i class="bi bi-layers-fill me-2 text-warning"></i>Soil Health</h6>
+          <span class="badge bg-warning-subtle text-warning rounded-pill small">{{ soil.soil_profile.type[:12] }}…</span>
+        </div>
+        <div class="soil-score-ring text-center py-3">
+          <div class="score-circle">
+            <svg viewBox="0 0 100 100" class="score-svg">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="var(--bs-border-color)" stroke-width="8"/>
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#22c55e" stroke-width="8"
+                stroke-dasharray="{{ soil.health_score * 2.513 }} 251.3"
+                stroke-dashoffset="62.8" stroke-linecap="round"/>
+            </svg>
+            <div class="score-text">
+              <span class="score-num">{{ soil.health_score }}</span>
+              <span class="score-label">/ 100</span>
+            </div>
+          </div>
+          <div class="text-muted small mt-2">Soil Health Score</div>
+        </div>
+        <div class="soil-nutrients mt-2">
+          <div class="nutrient-row">
+            <span>Nitrogen (N)</span>
+            <span class="badge bg-warning-subtle text-warning">{{ soil.soil_profile.nitrogen }}</span>
+          </div>
+          <div class="nutrient-row">
+            <span>Phosphorus (P)</span>
+            <span class="badge bg-info-subtle text-info">{{ soil.soil_profile.phosphorus }}</span>
+          </div>
+          <div class="nutrient-row">
+            <span>Potassium (K)</span>
+            <span class="badge bg-success-subtle text-success">{{ soil.soil_profile.potassium }}</span>
+          </div>
+          <div class="nutrient-row">
+            <span>Soil pH</span>
+            <span class="badge bg-secondary-subtle text-secondary">{{ soil.soil_profile.ph_range }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Row 2: Market Prices + Farming Tips ────────────────── -->
+  <div class="row g-4 mb-4">
+
+    <!-- Market Prices Chart -->
+    <div class="col-lg-8">
+      <div class="dash-card glass-card">
+        <div class="dash-card-header">
+          <h6><i class="bi bi-graph-up-arrow me-2 text-info"></i>Market Price Trends</h6>
+          <a href="{{ url_for('market') }}" class="small text-primary">View all →</a>
+        </div>
+        <div class="table-responsive mt-3">
+          <table class="table table-dark table-hover align-middle">
+            <thead>
+              <tr class="text-muted small">
+                <th>Crop</th>
+                <th>Market</th>
+                <th>Modal Price</th>
+                <th>MSP</th>
+                <th>Trend</th>
+                <th>vs MSP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for price in market_prices %}
+              <tr>
+                <td class="fw-600">{{ price.crop }}</td>
+                <td class="text-muted small">{{ price.market }}</td>
+                <td>{{ price.unit.split('/')[0] }}{{ price.modal_price }}/qtl</td>
+                <td class="text-muted">{% if price.msp %}₹{{ price.msp }}{% else %}—{% endif %}</td>
+                <td>
+                  {% if price.trend == 'up' %}<span class="text-success"><i class="bi bi-arrow-up-circle-fill"></i> Up</span>
+                  {% elif price.trend == 'down' %}<span class="text-danger"><i class="bi bi-arrow-down-circle-fill"></i> Down</span>
+                  {% else %}<span class="text-warning"><i class="bi bi-dash-circle-fill"></i> Stable</span>{% endif %}
+                </td>
+                <td>
+                  {% if price.msp %}
+                    {% set diff = price.modal_price - price.msp %}
+                    {% if diff >= 0 %}
+                      <span class="badge bg-success-subtle text-success">+₹{{ diff }}</span>
+                    {% else %}
+                      <span class="badge bg-danger-subtle text-danger">₹{{ diff }}</span>
+                    {% endif %}
+                  {% else %}<span class="text-muted">—</span>{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Farming Tips + Quick Links -->
+    <div class="col-lg-4">
+      <div class="dash-card glass-card h-100">
+        <div class="dash-card-header">
+          <h6><i class="bi bi-lightbulb-fill me-2 text-warning"></i>AI Farming Tips</h6>
+        </div>
+        <div class="tips-list mt-3">
+          <div class="tip-item">
+            <div class="tip-icon bg-green-subtle"><i class="bi bi-droplet-fill text-success"></i></div>
+            <div>
+              <div class="small fw-600">Irrigation Alert</div>
+              <div class="text-muted" style="font-size:12px;">Rain expected mid-week — hold irrigation for 2 days</div>
+            </div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-icon bg-yellow-subtle"><i class="bi bi-sun-fill text-warning"></i></div>
+            <div>
+              <div class="small fw-600">Field Scouting</div>
+              <div class="text-muted" style="font-size:12px;">High humidity — check for fungal diseases this week</div>
+            </div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-icon bg-blue-subtle"><i class="bi bi-clock-fill text-info"></i></div>
+            <div>
+              <div class="small fw-600">Sowing Window</div>
+              <div class="text-muted" style="font-size:12px;">Kharif sowing window: June 1 – July 15</div>
+            </div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-icon bg-purple-subtle"><i class="bi bi-bag-check-fill text-purple"></i></div>
+            <div>
+              <div class="small fw-600">Market Opportunity</div>
+              <div class="text-muted" style="font-size:12px;">Soybean prices up 8% — good time to sell stored stock</div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4">
+          <a href="{{ url_for('chat') }}" class="btn btn-primary-gradient w-100 btn-sm">
+            <i class="bi bi-stars me-2"></i>Get Personalized AI Advice
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Row 3: 7-Day Forecast ──────────────────────────────── -->
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="dash-card glass-card">
+        <div class="dash-card-header">
+          <h6><i class="bi bi-calendar3 me-2 text-info"></i>7-Day Weather Forecast</h6>
+          <span class="text-muted small">{{ weather.location }}</span>
+        </div>
+        <div class="forecast-row mt-3">
+          {% for day in weather.forecast_7day %}
+          <div class="forecast-day">
+            <div class="forecast-day-name">{{ day.day }}</div>
+            <div class="forecast-icon">
+              {% if 'Sunny' in day.condition %}☀️
+              {% elif 'Rain' in day.condition %}🌧️
+              {% elif 'Cloud' in day.condition %}⛅
+              {% else %}🌤️{% endif %}
+            </div>
+            <div class="forecast-temp">{{ day.high }}°</div>
+            <div class="forecast-low text-muted">{{ day.low }}°</div>
+            <div class="forecast-rain">
+              <i class="bi bi-droplet-fill text-info" style="font-size:10px;"></i>
+              <span style="font-size:11px;">{{ day.rain_chance }}%</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+{% endblock %}

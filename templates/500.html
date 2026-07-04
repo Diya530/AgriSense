@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}500 – Server Error{% endblock %}
+{% block content %}
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height:70vh;">
+  <div class="text-center">
+    <div style="font-size:80px;">⚠️</div>
+    <h1 class="display-1 fw-700 text-muted">500</h1>
+    <h4 class="mb-3">Something went wrong.</h4>
+    <p class="text-muted mb-4">Our farming AI hit an unexpected error. Try again in a moment.</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary-gradient btn-lg px-4">
+      <i class="bi bi-house-fill me-2"></i>Back to Home
+    </a>
+  </div>
+</div>
+{% endblock %}

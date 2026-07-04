@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Government Schemes{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0 fw-700">Government Agricultural Schemes</h4>
+      <p class="text-muted small mb-0">Central & state schemes, subsidies, and welfare programs for farmers</p>
+    </div>
+    <a href="{{ url_for('chat') }}" class="btn btn-primary-gradient btn-sm px-3">
+      <i class="bi bi-chat-dots-fill me-1"></i>Ask About Schemes
+    </a>
+  </div>
+
+  <!-- Category Filter -->
+  <div class="glass-card p-3 mb-4">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="text-muted small me-2">Filter by category:</span>
+      <button class="chip-filter active" data-cat="all">All ({{ schemes.total }})</button>
+      <button class="chip-filter" data-cat="income_support">💰 Income Support</button>
+      <button class="chip-filter" data-cat="insurance">🛡️ Insurance</button>
+      <button class="chip-filter" data-cat="credit">💳 Credit & Loans</button>
+      <button class="chip-filter" data-cat="subsidy">🔧 Subsidies</button>
+      <button class="chip-filter" data-cat="market">📊 Market Access</button>
+    </div>
+  </div>
+
+  <!-- Schemes Grid -->
+  <div class="row g-4" id="schemes-grid">
+    {% for scheme in schemes.schemes %}
+    <div class="col-xl-6 col-12 scheme-card-wrapper" data-cat="{{ scheme.category }}">
+      <div class="scheme-card glass-card h-100 border-color-{{ scheme.color }}">
+        <!-- Header -->
+        <div class="scheme-header">
+          <div class="scheme-icon-wrap bg-{{ scheme.color }}-subtle">
+            <span class="scheme-emoji">{{ scheme.icon }}</span>
+          </div>
+          <div class="flex-grow-1">
+            <h6 class="scheme-title mb-1">{{ scheme.name }}</h6>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <span class="badge bg-{{ scheme.color }}-subtle text-{{ scheme.color }} rounded-pill small">
+                {{ scheme.category | replace('_',' ') | title }}
+              </span>
+              <span class="badge bg-success-subtle text-success rounded-pill small">
+                <i class="bi bi-check-circle-fill me-1"></i>{{ scheme.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ministry -->
+        <div class="scheme-ministry mt-2">
+          <i class="bi bi-building me-1 text-muted"></i>
+          <span class="text-muted small">{{ scheme.ministry }}</span>
+        </div>
+
+        <!-- Benefit -->
+        <div class="scheme-benefit mt-3">
+          <div class="scheme-section-label">🎁 Benefit</div>
+          <p class="small mb-0">{{ scheme.benefit }}</p>
+        </div>
+
+        <!-- Eligibility -->
+        <div class="scheme-eligibility mt-2">
+          <div class="scheme-section-label">✅ Eligibility</div>
+          <p class="small mb-0 text-muted">{{ scheme.eligibility }}</p>
+        </div>
+
+        <!-- Documents Required -->
+        <div class="scheme-docs mt-2">
+          <div class="scheme-section-label mb-1">📄 Documents Required</div>
+          <div class="d-flex flex-wrap gap-1">
+            {% for doc in scheme.documents %}
+            <span class="doc-badge">{{ doc }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- How to Apply -->
+        <div class="scheme-apply mt-3 p-3 rounded-3 bg-dark-subtle">
+          <div class="scheme-section-label mb-1">📝 How to Apply</div>
+          <p class="small mb-2">{{ scheme.how_to_apply }}</p>
+          <a href="{{ url_for('chat') }}" class="btn btn-sm btn-outline-{{ scheme.color }} rounded-pill">
+            <i class="bi bi-chat-dots me-1"></i>Ask AI for help applying
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="glass-card p-4 mt-4">
+    <div class="d-flex gap-3 align-items-start">
+      <i class="bi bi-exclamation-triangle-fill text-warning fs-4 mt-1"></i>
+      <div>
+        <h6 class="mb-1">Important Disclaimer</h6>
+        <p class="text-muted small mb-0">
+          {{ schemes.disclaimer }} Scheme details may change. Always verify on official government portals
+          such as <strong>pmkisan.gov.in</strong>, <strong>pmfby.gov.in</strong>, <strong>myscheme.gov.in</strong>,
+          and your State Agriculture Department website before applying.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Helplines Card -->
+  <div class="row g-4 mt-2">
+    <div class="col-md-6">
+      <div class="glass-card p-4">
+        <h6 class="mb-3"><i class="bi bi-telephone-fill me-2 text-success"></i>Farmer Helplines</h6>
+        <div class="d-flex flex-column gap-2">
+          <div class="helpline-item">
+            <span>📞 Kisan Call Centre</span>
+            <strong>1800-180-1551</strong>
+          </div>
+          <div class="helpline-item">
+            <span>📞 PM-KISAN Helpline</span>
+            <strong>155261 / 011-24300606</strong>
+          </div>
+          <div class="helpline-item">
+            <span>📞 PMFBY Helpline</span>
+            <strong>1800-200-7710</strong>
+          </div>
+          <div class="helpline-item">
+            <span>📞 Soil Health Card</span>
+            <strong>soilhealth.dac.gov.in</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="glass-card p-4">
+        <h6 class="mb-3"><i class="bi bi-link-45deg me-2 text-info"></i>Useful Official Portals</h6>
+        <div class="d-flex flex-column gap-2">
+          <a href="https://pmkisan.gov.in" target="_blank" class="portal-link">
+            <i class="bi bi-box-arrow-up-right me-2"></i>pmkisan.gov.in – PM-KISAN
+          </a>
+          <a href="https://pmfby.gov.in" target="_blank" class="portal-link">
+            <i class="bi bi-box-arrow-up-right me-2"></i>pmfby.gov.in – Crop Insurance
+          </a>
+          <a href="https://enam.gov.in" target="_blank" class="portal-link">
+            <i class="bi bi-box-arrow-up-right me-2"></i>enam.gov.in – e-NAM Market
+          </a>
+          <a href="https://myscheme.gov.in" target="_blank" class="portal-link">
+            <i class="bi bi-box-arrow-up-right me-2"></i>myscheme.gov.in – All Schemes
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Category filter for schemes
+const filterBtns = document.querySelectorAll('.chip-filter');
+const schemeCards = document.querySelectorAll('.scheme-card-wrapper');
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const cat = this.dataset.cat;
+    schemeCards.forEach(card => {
+      if (cat === 'all' || card.dataset.cat === cat) {
+        card.style.display = '';
+        card.style.animation = 'fadeIn 0.3s ease';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

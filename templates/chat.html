@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}AI Advisor Chat{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { overflow: hidden; }
+  main { height: calc(100vh - 60px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout d-flex" style="height:calc(100vh - 60px);">
+
+  <!-- ── Left Sidebar ──────────────────────────────────────── -->
+  <aside class="chat-sidebar d-none d-lg-flex flex-column">
+    <div class="sidebar-header px-4 py-3">
+      <h6 class="mb-0 fw-600"><i class="bi bi-chat-dots-fill me-2 text-primary"></i>AI Advisor</h6>
+    </div>
+
+    <!-- Suggested Questions -->
+    <div class="sidebar-section px-3 py-2 flex-grow-1 overflow-auto">
+      <p class="sidebar-label">Suggested Questions</p>
+      <div class="d-flex flex-column gap-2" id="suggested-questions">
+        <button class="suggested-btn" data-q="What crops should I grow this Kharif season on black cotton soil?">
+          <i class="bi bi-seedling-fill text-success me-2"></i>Best Kharif crops for black soil?
+        </button>
+        <button class="suggested-btn" data-q="How do I treat wheat rust disease organically?">
+          <i class="bi bi-bug-fill text-warning me-2"></i>Treat wheat rust disease?
+        </button>
+        <button class="suggested-btn" data-q="What is the MSP of rice and wheat this year?">
+          <i class="bi bi-graph-up-arrow text-info me-2"></i>Current MSP for rice and wheat?
+        </button>
+        <button class="suggested-btn" data-q="How do I apply for PM-KISAN scheme?">
+          <i class="bi bi-award-fill text-primary me-2"></i>Apply for PM-KISAN?
+        </button>
+        <button class="suggested-btn" data-q="What fertilizer dosage is best for 1 acre of cotton?">
+          <i class="bi bi-droplet-fill text-cyan me-2"></i>Cotton fertilizer dosage?
+        </button>
+        <button class="suggested-btn" data-q="Best irrigation method for water-scarce regions?">
+          <i class="bi bi-water text-primary me-2"></i>Water-saving irrigation methods?
+        </button>
+        <button class="suggested-btn" data-q="What vegetables can I grow in summer season (Zaid)?">
+          <i class="bi bi-sun-fill text-warning me-2"></i>Summer season vegetables?
+        </button>
+        <button class="suggested-btn" data-q="How to improve my soil health and increase organic matter?">
+          <i class="bi bi-layers-fill text-success me-2"></i>Improve soil health?
+        </button>
+        <button class="suggested-btn" data-q="मेरी फसल में कीड़े लग गए हैं, क्या करूं?">
+          <i class="bi bi-translate text-secondary me-2"></i>मेरी फसल में कीड़े (Hindi)
+        </button>
+      </div>
+    </div>
+
+    <!-- Sidebar Footer Info -->
+    <div class="sidebar-footer px-4 py-3">
+      <div id="model-badge" class="model-info-card mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="status-dot status-dot-sm"></span>
+          <span class="small fw-600" id="model-name">IBM Granite</span>
+        </div>
+        <span class="small text-muted" id="model-mode">Checking…</span>
+      </div>
+      <button class="btn btn-sm btn-outline-danger w-100 rounded-pill" id="clear-chat-btn">
+        <i class="bi bi-trash3 me-1"></i>Clear Chat
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main Chat Area ─────────────────────────────────────── -->
+  <div class="chat-main d-flex flex-column flex-grow-1">
+
+    <!-- Chat Header -->
+    <div class="chat-header px-4 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ai-avatar"><i class="bi bi-tree-fill"></i></div>
+        <div>
+          <div class="fw-700">AgriSense AI</div>
+          <div class="text-success" style="font-size:12px;" id="agent-status">
+            <span class="status-dot status-dot-sm me-1"></span>Online — Powered by IBM Granite
+          </div>
+        </div>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <!-- Mobile suggested questions toggle -->
+        <button class="btn btn-sm btn-outline-secondary d-lg-none rounded-pill" data-bs-toggle="offcanvas" data-bs-target="#suggestedOffcanvas">
+          <i class="bi bi-lightbulb-fill"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger rounded-pill d-none d-lg-none" id="clear-chat-mobile">
+          <i class="bi bi-trash3"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="chat-messages flex-grow-1 overflow-auto px-4 py-3" id="chat-messages">
+
+      <!-- Welcome message (only shown if no history) -->
+      {% if not chat_history %}
+      <div class="chat-welcome text-center py-5" id="welcome-screen">
+        <div class="welcome-icon mb-4">
+          <i class="bi bi-tree-fill"></i>
+        </div>
+        <h4 class="mb-2">Welcome to AgriSense AI! 🌾</h4>
+        <p class="text-muted mb-4">
+          IBM Granite–powered farming advisor. Ask me anything in English or your regional language.
+        </p>
+        <div class="d-flex flex-wrap gap-2 justify-content-center">
+          <button class="chip-btn" data-q="What crops should I grow this season?">🌱 Crop advice</button>
+          <button class="chip-btn" data-q="What are today's mandi prices for wheat?">📊 Market prices</button>
+          <button class="chip-btn" data-q="How to apply for PM-KISAN?">🏛️ Govt schemes</button>
+          <button class="chip-btn" data-q="मेरे खेत के लिए सबसे अच्छी फसल कौन सी है?">हिंदी में पूछें</button>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Render existing session history -->
+      {% for msg in chat_history %}
+        {% if msg.role == 'user' %}
+        <div class="message-row user-row">
+          <div class="message-bubble user-bubble">
+            <p class="mb-0">{{ msg.content }}</p>
+          </div>
+          <div class="message-avatar user-avatar"><i class="bi bi-person-fill"></i></div>
+        </div>
+        {% elif msg.role == 'assistant' %}
+        <div class="message-row ai-row">
+          <div class="message-avatar ai-avatar-chat"><i class="bi bi-tree-fill"></i></div>
+          <div class="message-bubble ai-bubble">
+            <div class="ai-response-content">{{ msg.content | safe }}</div>
+            <div class="message-actions mt-2">
+              <button class="action-btn copy-btn" title="Copy response">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+
+      <!-- Typing indicator (hidden by default) -->
+      <div class="message-row ai-row d-none" id="typing-indicator">
+        <div class="message-avatar ai-avatar-chat"><i class="bi bi-tree-fill"></i></div>
+        <div class="message-bubble ai-bubble">
+          <div class="typing-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Input Area -->
+    <div class="chat-input-area px-4 py-3">
+      <form id="chat-form" class="chat-input-form">
+        <div class="input-wrapper">
+          <textarea
+            id="message-input"
+            class="chat-textarea"
+            placeholder="Ask about crops, weather, pests, market prices, schemes… (Ctrl+Enter to send)"
+            rows="1"
+            maxlength="2000"
+          ></textarea>
+          <div class="input-actions">
+            <span class="char-count" id="char-count">0/2000</span>
+            <button type="submit" class="send-btn" id="send-btn" title="Send message (Ctrl+Enter)">
+              <i class="bi bi-send-fill"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+      <p class="input-disclaimer text-center mt-2 mb-0">
+        <i class="bi bi-info-circle me-1"></i>
+        AI responses are advisory. Verify critical decisions with your local KVK or agronomist.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Mobile Suggested Questions Offcanvas ──────────────────── -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="suggestedOffcanvas">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>Suggested Questions</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="d-flex flex-column gap-2">
+      <button class="suggested-btn" data-q="What crops should I grow this Kharif season on black cotton soil?" data-bs-dismiss="offcanvas">
+        <i class="bi bi-seedling-fill text-success me-2"></i>Best Kharif crops for black soil?
+      </button>
+      <button class="suggested-btn" data-q="How do I treat wheat rust disease organically?" data-bs-dismiss="offcanvas">
+        <i class="bi bi-bug-fill text-warning me-2"></i>Treat wheat rust disease?
+      </button>
+      <button class="suggested-btn" data-q="What is the MSP of rice and wheat this year?" data-bs-dismiss="offcanvas">
+        <i class="bi bi-graph-up-arrow text-info me-2"></i>Current MSP for rice and wheat?
+      </button>
+      <button class="suggested-btn" data-q="How do I apply for PM-KISAN scheme?" data-bs-dismiss="offcanvas">
+        <i class="bi bi-award-fill text-primary me-2"></i>Apply for PM-KISAN?
+      </button>
+      <button class="suggested-btn" data-q="What fertilizer dosage is best for 1 acre of cotton?" data-bs-dismiss="offcanvas">
+        <i class="bi bi-droplet-fill me-2"></i>Cotton fertilizer dosage?
+      </button>
+    </div>
+    <hr/>
+    <button class="btn btn-outline-danger w-100 rounded-pill mt-2" id="clear-chat-offcanvas">
+      <i class="bi bi-trash3 me-1"></i>Clear Chat History
+    </button>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

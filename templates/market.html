@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Market Prices{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0 fw-700">Crop Market Prices</h4>
+      <p class="text-muted small mb-0">
+        Mandi prices & MSP comparison · Updated: {{ market_data.date }}
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('chat') }}" class="btn btn-primary-gradient btn-sm px-3">
+        <i class="bi bi-chat-dots-fill me-1"></i>Ask Price Advice
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="dash-card glass-card text-center py-3 px-2">
+        <div class="stat-number text-success fs-3 fw-700">{{ market_data.prices | selectattr('trend','eq','up') | list | length }}</div>
+        <div class="text-muted small">Prices Rising ↑</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-card glass-card text-center py-3 px-2">
+        <div class="stat-number text-danger fs-3 fw-700">{{ market_data.prices | selectattr('trend','eq','down') | list | length }}</div>
+        <div class="text-muted small">Prices Falling ↓</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-card glass-card text-center py-3 px-2">
+        <div class="stat-number text-warning fs-3 fw-700">{{ market_data.prices | selectattr('trend','eq','stable') | list | length }}</div>
+        <div class="text-muted small">Stable Prices →</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-card glass-card text-center py-3 px-2">
+        <div class="stat-number text-info fs-3 fw-700">{{ market_data.total_records }}</div>
+        <div class="text-muted small">Commodities</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="glass-card p-3 mb-4">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-6">
+        <div class="search-input-wrap">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" id="market-search" class="form-control ps-5 bg-transparent border-0" placeholder="Search crop, market, or state…" />
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select bg-transparent border-0" id="trend-filter">
+          <option value="">All Trends</option>
+          <option value="up">📈 Rising</option>
+          <option value="down">📉 Falling</option>
+          <option value="stable">➡️ Stable</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small text-md-end">
+          <i class="bi bi-info-circle me-1"></i>{{ market_data.disclaimer }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Price Cards Grid (mobile) / Table (desktop) -->
+  <!-- Desktop Table -->
+  <div class="glass-card d-none d-md-block">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0" id="market-table">
+        <thead>
+          <tr class="table-header-row">
+            <th>Crop & Variety</th>
+            <th>Market</th>
+            <th>State</th>
+            <th>Min ₹</th>
+            <th>Max ₹</th>
+            <th class="fw-700">Modal ₹</th>
+            <th>MSP ₹</th>
+            <th>Trend</th>
+            <th>vs MSP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in market_data.prices %}
+          <tr class="market-row" data-trend="{{ p.trend }}">
+            <td>
+              <div class="fw-600">{{ p.crop }}</div>
+              <div class="text-muted small">{{ p.variety }}</div>
+            </td>
+            <td class="text-muted">{{ p.market }}</td>
+            <td class="text-muted small">{{ p.state }}</td>
+            <td class="text-muted">{{ p.min_price }}</td>
+            <td class="text-muted">{{ p.max_price }}</td>
+            <td class="fw-700 text-success fs-5">{{ p.modal_price }}</td>
+            <td class="text-muted">{% if p.msp %}{{ p.msp }}{% else %}—{% endif %}</td>
+            <td>
+              {% if p.trend == 'up' %}
+                <span class="trend-badge trend-up"><i class="bi bi-arrow-up"></i> Up</span>
+              {% elif p.trend == 'down' %}
+                <span class="trend-badge trend-down"><i class="bi bi-arrow-down"></i> Down</span>
+              {% else %}
+                <span class="trend-badge trend-stable"><i class="bi bi-dash"></i> Stable</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.msp %}
+                {% set diff = p.modal_price - p.msp %}
+                {% if diff >= 0 %}
+                  <span class="badge bg-success-subtle text-success">+{{ diff }}</span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger">{{ diff }}</span>
+                {% endif %}
+              {% else %}
+                <span class="text-muted">N/A</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile Cards -->
+  <div class="d-md-none" id="mobile-market-cards">
+    {% for p in market_data.prices %}
+    <div class="glass-card market-mobile-card mb-3 market-row" data-trend="{{ p.trend }}">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <div class="fw-700 fs-5">{{ p.crop }}</div>
+          <div class="text-muted small">{{ p.variety }} · {{ p.market }}, {{ p.state }}</div>
+        </div>
+        {% if p.trend == 'up' %}
+          <span class="trend-badge trend-up"><i class="bi bi-arrow-up"></i></span>
+        {% elif p.trend == 'down' %}
+          <span class="trend-badge trend-down"><i class="bi bi-arrow-down"></i></span>
+        {% else %}
+          <span class="trend-badge trend-stable"><i class="bi bi-dash"></i></span>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-3 flex-wrap">
+        <div>
+          <div class="text-muted" style="font-size:11px;">MODAL PRICE</div>
+          <div class="fw-700 text-success">₹{{ p.modal_price }}/qtl</div>
+        </div>
+        {% if p.msp %}
+        <div>
+          <div class="text-muted" style="font-size:11px;">MSP</div>
+          <div class="fw-600">₹{{ p.msp }}</div>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:11px;">VS MSP</div>
+          {% set diff = p.modal_price - p.msp %}
+          {% if diff >= 0 %}
+            <div class="text-success fw-600">+₹{{ diff }}</div>
+          {% else %}
+            <div class="text-danger fw-600">₹{{ diff }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Integration Notice -->
+  <div class="integration-notice glass-card p-4 text-center mt-4">
+    <h6 class="mb-2"><i class="bi bi-database-fill-up me-2 text-info"></i>Connect Live Market Data</h6>
+    <p class="text-muted small mb-0">
+      Integrate <strong>Agmarknet API</strong> (data.gov.in) or <strong>e-NAM</strong> for live mandi prices.
+      Update <code>tools/market_tool.py</code> with real API credentials.
+    </p>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Market search and filter
+const searchInput = document.getElementById('market-search');
+const trendFilter = document.getElementById('trend-filter');
+const rows = document.querySelectorAll('.market-row');
+
+function filterMarket() {
+  const q = (searchInput.value || '').toLowerCase();
+  const trend = (trendFilter.value || '').toLowerCase();
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    const rowTrend = (row.dataset.trend || '').toLowerCase();
+    const matchText = !q || text.includes(q);
+    const matchTrend = !trend || rowTrend === trend;
+    row.style.display = matchText && matchTrend ? '' : 'none';
+  });
+}
+
+searchInput && searchInput.addEventListener('input', filterMarket);
+trendFilter && trendFilter.addEventListener('change', filterMarket);
+</script>
+{% endblock %}
