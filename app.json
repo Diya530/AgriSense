@@ -1,0 +1,28 @@
+{
+  "name": "AgriSense AI",
+  "description": "AI-powered Smart Farming Advisor using Python Flask, IBM watsonx.ai, and IBM Granite foundation models.",
+  "repository": "https://github.com/Diya530/AgriSense.git",
+  "keywords": [
+    "python",
+    "flask",
+    "ibm",
+    "watsonx",
+    "granite",
+    "smart-farming",
+    "agentic-ai"
+  ],
+  "env": {
+    "IBM_API_KEY": {
+      "description": "IBM Cloud API Key"
+    },
+    "IBM_PROJECT_ID": {
+      "description": "IBM watsonx Project ID"
+    },
+    "IBM_WATSONX_URL": {
+      "description": "IBM watsonx URL"
+    },
+    "FLASK_SECRET_KEY": {
+      "description": "Flask Secret Key"
+    }
+  }
+}
