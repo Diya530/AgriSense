@@ -7,6 +7,9 @@
 
 A professional AI-powered smart farming web application built with **Python Flask** and **IBM watsonx.ai (IBM Granite foundation models)**. AgriSense AI provides personalized farming advice in English and 10 Indian regional languages.
 
+## 🚀 Live Demo
+https://agrisense-s8vb.onrender.com/
+
 ---
 
 ## ✨ Features
