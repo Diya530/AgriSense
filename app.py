@@ -10,6 +10,7 @@ import markdown
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
+from flask import request
 try:
     from ibm_watsonx_ai import Credentials
     from ibm_watsonx_ai.foundation_models import ModelInference
@@ -320,10 +321,36 @@ def dashboard():
 
 @app.route("/weather")
 def weather():
-    """Weather information page"""
-    cities = ["Nashik", "Ludhiana", "Warangal", "Rajkot", "Patna", "Bhopal"]
-    weather_data = {city: get_weather_data(city) for city in cities}
-    return render_template("weather.html", weather_data=weather_data)
+
+    city = request.args.get("city")
+
+    if city:
+        # User searched for a city
+        weather_data = {
+            city: get_weather_data(city)
+        }
+
+    else:
+        # Default cities shown on first load
+        default_cities = [
+            "Ludhiana",
+            "Delhi",
+            "Hyderabad",
+            "Pune",
+            "Jaipur",
+            "Bengaluru"
+        ]
+
+        weather_data = {}
+
+        for c in default_cities:
+            weather_data[c] = get_weather_data(c)
+
+    return render_template(
+        "weather.html",
+        weather_data=weather_data,
+        selected_city=city if city else ""
+    )
 
 
 @app.route("/market")
