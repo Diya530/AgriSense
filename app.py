@@ -191,7 +191,7 @@ def generate_demo_response(user_message: str) -> str:
             "- ☀️ **UV Index:** High — avoid spraying between 11am–3pm\n\n"
             "**Farming Tip:** Hold irrigation for 2 days if rain is expected. "
             "Ensure proper drainage in low-lying fields to prevent waterlogging. 🌾\n\n"
-            "*Connect a real weather API for live forecasts in your area.*"
+            
         )
 
     if any(kw in msg_lower for kw in ["crop", "plant", "grow", "sow", "cultivat"]):
