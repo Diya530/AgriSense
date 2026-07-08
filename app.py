@@ -45,13 +45,13 @@ WATSONX_PROJECT_ID = os.getenv("WATSONX_PROJECT_ID")
 WATSONX_URL = os.getenv("WATSONX_URL", "https://us-south.ml.cloud.ibm.com")
 
 # IBM Granite model – change to any supported Granite model ID
-GRANITE_MODEL_ID = "ibm/granite-13b-chat-v2"
+GRANITE_MODEL_ID = "ibm/granite-3-8b-instruct"
 
 # Generation parameters – tune these for desired response style
 GENERATION_PARAMS = {
     "max_new_tokens": 800,
     "min_new_tokens": 30,
-    "temperature": 0.7,
+    "temperature": 0.3,
     "top_p": 0.9,
     "top_k": 50,
     "repetition_penalty": 1.1,
@@ -132,6 +132,18 @@ def generate_response(user_message: str, conversation_history: list) -> dict:
     try:
         prompt = build_prompt(conversation_history, user_message)
         result = model.generate_text(prompt=prompt)
+        print("=" * 60)
+        print("USER MESSAGE:")
+        print(user_message)
+
+        print("=" * 60)
+        print("PROMPT:")
+        print(prompt)
+
+        print("=" * 60)
+        print("RAW MODEL OUTPUT:")
+        print(result)
+        print("=" * 60)
 
         response_text = result if isinstance(result, str) else str(result)
         response_text = response_text.strip()
@@ -198,7 +210,7 @@ def generate_demo_response(user_message: str) -> str:
             "Would you like advice on fertilizer scheduling or irrigation for any of these crops? 🌿"
         )
 
-    if any(kw in msg_lower for kw in ["price", "market", "mandi", "sell", "rate", "msP"]):
+    if any(kw in msg_lower for kw in ["price", "market", "mandi", "sell", "rate", "msp"]):
         return (
             "📊 **Today's Market Prices (Sample)**\n\n"
             "| Crop | Modal Price | MSP | Trend |\n"
@@ -263,6 +275,19 @@ def generate_demo_response(user_message: str) -> str:
             "💡 Always get a **Soil Health Card** before fertilizing — it saves 15–20% input cost!\n\n"
             "What specific crop or soil problem would you like advice on?"
         )
+    
+    if any(kw in msg_lower for kw in ["irrigation", "drip", "sprinkler", "water", "water-scarce","drought", "watering", "irrigate"]):
+      return (
+        "💧 **Irrigation Advisory**\n\n"
+        "**For water-scarce regions, drip irrigation is the most efficient method.**\n\n"
+        "Benefits:\n"
+        "- 💦 Saves up to 50–70% water\n"
+        "- 🌱 Delivers water directly to plant roots\n"
+        "- 🌾 Improves crop yield and fertilizer efficiency\n"
+        "- 🌞 Reduces evaporation and weed growth\n\n"
+        "**Suitable Crops:** Cotton, vegetables, fruits, sugarcane and horticultural crops.\n\n"
+        "💡 Tip: Farmers can also explore government subsidies under the **PM Krishi Sinchayee Yojana** for drip irrigation systems."
+    )
 
     # Default / General response
     return (
@@ -283,6 +308,7 @@ def generate_demo_response(user_message: str) -> str:
         "I support English and major Indian regional languages. "
         "How can I help you today? 🙏"
     )
+
 
 
 # ─────────────────────────────────────────────────────────────────

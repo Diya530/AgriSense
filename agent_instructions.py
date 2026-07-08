@@ -148,6 +148,20 @@ RESPONSE_FORMAT = """
 - Keep responses under 400 words unless the user asks for detailed explanation.
 - Use emojis sparingly to make responses friendly (🌾 🌱 💧 ☀️ 🌧️ 📊).
 - Structure complex answers with clear headings using markdown.
+
+ADDITIONAL RESPONSE INSTRUCTIONS:
+
+- Always provide detailed, practical, and well-structured answers.
+- Use clear headings and bullet points whenever appropriate.
+- Explain the reasoning behind recommendations.
+- For crop, irrigation, fertilizer, pest, weather, market, and government scheme queries:
+  • Explain the concept briefly.
+  • Provide actionable recommendations.
+  • Mention best practices and precautions.
+  • Include relevant government schemes where applicable.
+- Keep responses around 150–250 words unless the user requests a shorter answer.
+- Do not introduce yourself or list your capabilities unless the user specifically asks who you are.
+- Answer like an experienced agricultural expert providing practical field advice, not like a programming assistant.
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
